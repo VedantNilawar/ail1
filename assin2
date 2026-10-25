@@ -1,0 +1,80 @@
+
+import math
+
+b = [' '] * 9
+wins = [(0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),
+        (2,5,8),(0,4,8),(2,4,6)]
+
+def winner(p):
+    return any(all(b[i] == p for i in w) for w in wins)
+
+def minimax(d, maxp, a, be):
+    if winner('O'): return 10-d
+    if winner('X'): return d-10
+    if ' ' not in b: return 0
+
+    best = -math.inf if maxp else math.inf
+    p = 'O' if maxp else 'X'
+
+    for i in range(9):
+        if b[i] == ' ':
+            b[i] = p
+            s = minimax(d+1, not maxp, a, be)
+            b[i] = ' '
+
+            if maxp:
+                best = max(best, s)
+                a = max(a, best)
+            else:
+                best = min(best, s)
+                be = min(be, best)
+
+            if a >= be: break
+    return best
+
+def show():
+    for i in range(0,9,3):
+        print(' | '.join(b[i:i+3]))
+        if i < 6: print('--+---+--')
+
+while True:
+    show()
+    try:
+        m = int(input("Your move (0-8): "))
+        if m not in range(9) or b[m] != ' ':
+            print("Invalid move!")
+            continue
+    except ValueError:
+        print("Enter a number!")
+        continue
+
+    b[m] = 'X'
+
+    if winner('X'):
+        show()
+        print("You win!")
+        break
+    if ' ' not in b:
+        show()
+        print("Draw!")
+        break
+
+    best, move = -math.inf, -1
+    for i in range(9):
+        if b[i] == ' ':
+            b[i] = 'O'
+            s = minimax(0, False, -math.inf, math.inf)
+            b[i] = ' '
+            if s > best: best, move = s, i
+
+    b[move] = 'O'
+    print("AI move:", move)
+
+    if winner('O'):
+        show()
+        print("AI wins!")
+        break
+    if ' ' not in b:
+        show()
+        print("Draw!")
+        break
