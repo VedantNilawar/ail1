@@ -1,0 +1,45 @@
+
+colors = ['Red', 'Green', 'Blue', 'Yellow']
+
+neighbors = {
+    'Maharashtra': ['Gujarat', 'Madhya Pradesh', 'Chhattisgarh', 'Telangana', 'Karnataka', 'Goa'],
+    'Gujarat': ['Rajasthan', 'Madhya Pradesh', 'Maharashtra'],
+    'Goa': ['Maharashtra', 'Karnataka'],
+    'Karnataka': ['Goa', 'Maharashtra', 'Telangana', 'Andhra Pradesh'],
+    'Telangana': ['Maharashtra', 'Chhattisgarh', 'Andhra Pradesh', 'Karnataka'],
+    'Madhya Pradesh': ['Gujarat', 'Maharashtra', 'Chhattisgarh', 'Rajasthan'],
+    'Chhattisgarh': ['Madhya Pradesh', 'Maharashtra', 'Telangana'],
+    'Rajasthan': ['Gujarat', 'Madhya Pradesh']
+}
+
+assignment = {}
+
+def is_valid(state, color):
+    for neighbor in neighbors[state]:
+        if assignment.get(neighbor) == color:
+            return False
+    return True
+
+def solve(states):
+    if not states:
+        return True
+
+    state = states[0]
+
+    for color in colors:
+        if is_valid(state, color):
+            assignment[state] = color
+
+            if solve(states[1:]):
+                return True
+
+            del assignment[state]
+
+    return False
+
+if solve(list(neighbors.keys())):
+    print("Map Coloring Solution:")
+    for state, color in assignment.items():
+        print(state, ":", color)
+else:
+    print("No solution exists")
