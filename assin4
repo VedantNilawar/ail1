@@ -1,0 +1,56 @@
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.semi_supervised import LabelSpreading
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+data = load_breast_cancer()
+X, y = data.data, data.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# 1. Supervised learning
+lr = LogisticRegression(max_iter=5000)
+lr.fit(X_train, y_train)
+p1 = lr.predict(X_test)
+
+# 2. Semi-supervised learning
+# Hide labels for 80% of training samples
+import numpy as np
+rng = np.random.default_rng(42)
+y_semi = y_train.copy()
+y_semi[rng.random(len(y_semi)) < 0.8] = -1
+
+semi = LabelSpreading()
+semi.fit(X_train, y_semi)
+p2 = semi.predict(X_test)
+
+# 3. Ensemble learning
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+ensemble = VotingClassifier([
+    ('lr', LogisticRegression(max_iter=5000)),
+    ('rf', RandomForestClassifier(n_estimators=100, random_state=42))
+], voting='soft')
+
+ensemble.fit(X_train, y_train)
+p3 = ensemble.predict(X_test)
+
+# Compare performance
+print("Model Performance")
+for name, pred in [
+    ("Supervised Logistic Regression", p1),
+    ("Semi-supervised Label Spreading", p2),
+    ("Ensemble Voting Classifier", p3)
+]:
+    print(name, "Accuracy:", round(accuracy_score(y_test, pred), 4))
